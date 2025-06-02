@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import item_data_router, login_router, enquiry, register,designation_router ,role_router,item_router,location_reg_router,equipment_reg_router,update_user_router, delete_user_router, update_item_router, delete_item_router
+from app.routers import item_data_router, login_router, enquiry, register,designation_router ,role_router,item_router,location_reg_router,equipment_reg_router,update_user_router, delete_user_router, update_item_router, delete_item_router,bookmark_router
 from pyngrok import ngrok
 import uvicorn
 import nest_asyncio
@@ -8,6 +8,10 @@ from app.routers.location_router import router as location_router
 from app.routers.user_router import router as user_router
 from app.routers.equipment_router import router as equipment_router
 from app.routers.notification_router import router as notification_router
+from app.routers.current_status_router import router as current_status_router
+from app.routers.sub_group_router import router as sub_group_router
+from app.routers.my_profile import router as my_profile_router
+
 
 app = FastAPI()
 
@@ -37,6 +41,10 @@ app.include_router(delete_user_router.router)
 app.include_router(update_item_router.router)
 app.include_router(delete_item_router.router)
 app.include_router(notification_router)
+app.include_router(bookmark_router.router)
+app.include_router(current_status_router)
+app.include_router(sub_group_router)
+app.include_router(my_profile_router)
 
 
 

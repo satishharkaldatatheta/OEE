@@ -1,11 +1,10 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
-from collections import defaultdict
 
 load_dotenv()
 
-def get_equipment_data(loc_id=None, item_id=None):
+def get_equipment_data(loc_id=None, item_id=None, user_id=None):
     connection = psycopg2.connect(
         host=os.getenv("POSTGRES_HOST"),
         port=os.getenv("POSTGRES_PORT"),
@@ -23,7 +22,6 @@ def get_equipment_data(loc_id=None, item_id=None):
     """)
     equipment_rows = cursor.fetchall()
 
-    # Build base equipment dict with empty items list
     equipment_map = {
         eq_id: {
             "equipment_id": eq_id,
@@ -33,7 +31,7 @@ def get_equipment_data(loc_id=None, item_id=None):
         for eq_id, eq_name in equipment_rows
     }
 
-    # 2. Fetch items filtered by loc_id and/or item_id
+    # 2. Fetch items filtered by user_id, loc_id, item_id
     base_items_query = """
         SELECT i.item_id, i.name AS item_name,
                i.equipment_id,
@@ -42,10 +40,18 @@ def get_equipment_data(loc_id=None, item_id=None):
         FROM oee.items i
         LEFT JOIN oee.location l ON i.loc_id = l.loc_id
         LEFT JOIN oee.team t ON i.team_id = t.team_id
-        WHERE 1=1
     """
 
-    params = []
+    # Add join with useritems if filtering by user
+    if user_id:
+        base_items_query += """
+        INNER JOIN oee.useritems ui ON i.item_id = ui.item_id
+        WHERE ui.user_id = %s
+        """
+        params = [user_id]
+    else:
+        base_items_query += " WHERE 1=1"
+        params = []
 
     if loc_id:
         base_items_query += " AND l.loc_id = %s"
@@ -58,7 +64,6 @@ def get_equipment_data(loc_id=None, item_id=None):
     cursor.execute(base_items_query, tuple(params))
     item_rows = cursor.fetchall()
 
-    # Add filtered items to the corresponding equipment in equipment_map
     for item_id_val, item_name, equipment_id, loc_id_val, location_name, team_name in item_rows:
         if equipment_id in equipment_map:
             equipment_map[equipment_id]["items"].append({
@@ -72,5 +77,4 @@ def get_equipment_data(loc_id=None, item_id=None):
     cursor.close()
     connection.close()
 
-    result = list(equipment_map.values())
-    return result
+    return list(equipment_map.values())
