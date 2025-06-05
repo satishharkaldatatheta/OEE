@@ -13,14 +13,16 @@ engine = create_engine(
 
 def get_item_data(item_id: str):
     query = """
-    SELECT productgroup, item_id, starttime, endtime, activehours,
-           (activehours / CASE 
-              WHEN productgroup = 'A' THEN 30 
-              WHEN productgroup IN ('B', 'C') THEN 24 
+    SELECT rd.productgroup, rd.item_id, rd.starttime, rd.endtime, rd.activehours,
+           (rd.activehours / CASE 
+              WHEN rd.productgroup = 'A' THEN 30 
+              WHEN rd.productgroup IN ('B', 'C') THEN 24 
               ELSE NULL 
-           END) * 0.98 * 0.98 AS oee
-    FROM oee.reactor_data
-    WHERE item_id = :item_id
+           END) * 0.98 * 0.98 AS oee,
+           i.loc_id
+    FROM oee.reactor_data rd
+    JOIN oee.items i ON rd.item_id = i.item_id
+    WHERE rd.item_id = :item_id
     """
     with engine.connect() as connection:
         result = connection.execute(text(query), {"item_id": item_id})

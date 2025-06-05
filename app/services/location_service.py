@@ -40,3 +40,17 @@ def get_locations_by_country(country: str):
     locations = cursor.fetchall()
     conn.close()
     return locations
+
+def get_locations_by_user(user_id: str):
+    query = """
+        SELECT l.loc_id, l.loc_name, l.address, l.country
+        FROM oee.location l
+        JOIN oee.userlocations ul ON l.loc_id = ul.loc_id
+        WHERE ul.user_id = %s
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query, (user_id,))
+    locations = cursor.fetchall()
+    conn.close()
+    return locations

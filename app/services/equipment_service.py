@@ -31,7 +31,7 @@ def get_equipment_data(loc_id=None, item_id=None, user_id=None):
         for eq_id, eq_name in equipment_rows
     }
 
-    # 2. Fetch items filtered by user_id, loc_id, item_id
+    # 2. Fetch items filtered by user_id, loc_id (string), item_id (string)
     base_items_query = """
         SELECT i.item_id, i.name AS item_name,
                i.equipment_id,
@@ -77,4 +77,5 @@ def get_equipment_data(loc_id=None, item_id=None, user_id=None):
     cursor.close()
     connection.close()
 
-    return list(equipment_map.values())
+    # Return only equipment that has at least one item
+    return [equipment for equipment in equipment_map.values() if equipment["items"]]

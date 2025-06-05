@@ -1,15 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from typing import Optional
 from app.services.location_service import (
     get_all_locations,
     get_location_by_id,
-    get_locations_by_country
+    get_locations_by_country,
+    get_locations_by_user
 )
 
 router = APIRouter()
 
 @router.get("/locations")
-async def get_all():
-    locations = get_all_locations()
+async def get_all(user_id: Optional[str] = Query(None)):
+    if user_id:
+        locations = get_locations_by_user(user_id)
+    else:
+        locations = get_all_locations()
     return [
         {"id": loc[0], "name": loc[1], "address": loc[2], "country": loc[3]}
         for loc in locations
