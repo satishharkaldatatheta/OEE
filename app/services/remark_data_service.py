@@ -19,11 +19,13 @@ def fetch_remark_data(user_id=None, item_id=None, remark_id=None, loc_id=None, r
         r.item_id,
         i.name,
         r.status,
-        rc.remark as remark,
-        CONCAT(lu.firstname, ' ', lu.lastname) as user_name,
+        r.remark_id,
+        r.remark_category_id,
+        rc.remark AS remark,
+        CONCAT(lu.firstname, ' ', lu.lastname) AS user_name,
         r.loc_id,
-        r.created_dt::date as date,
-        r.created_dt::time as time
+        r.created_dt::date AS date,
+        r.created_dt::time AS time
     FROM oee.remarks r
     LEFT JOIN oee.remarks_comment rc ON r.remark_id = rc.id
     LEFT JOIN oee.items i ON r.item_id = i.item_id
