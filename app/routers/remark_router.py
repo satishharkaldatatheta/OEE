@@ -11,8 +11,7 @@ def create_remark(
     item_id: str = Form(...),  
     loc_id: str = Form(...),  
     status: str = Form(...),
-    oee: float = Form(...),
-    problem: str = Form(...)
+    oee: float = Form(...)
 ):
     try:
         inserted_id = insert_remark(
@@ -22,8 +21,7 @@ def create_remark(
             item_id=item_id,
             loc_id=loc_id,
             status=status,
-            oee=oee,
-            problem=problem
+            oee=oee
         )
         return {"message": "Remark inserted successfully", "remark_id": inserted_id}
     except Exception as e:

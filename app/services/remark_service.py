@@ -14,12 +14,11 @@ def get_db_connection():
     )
 
 def insert_remark(user_id: int, remark_id: int, remark_category_id: int,
-                  item_id: str, loc_id: str, status: str, oee: float,
-                  problem: str):
+                  item_id: str, loc_id: str, status: str, oee: float):
     query = """
     INSERT INTO oee.remarks 
-    (user_id, remark_id, remark_category_id, item_id, loc_id, status, oee, problem)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    (user_id, remark_id, remark_category_id, item_id, loc_id, status, oee)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     RETURNING id
     """
     conn = get_db_connection()
@@ -33,8 +32,7 @@ def insert_remark(user_id: int, remark_id: int, remark_category_id: int,
                     item_id,
                     loc_id,
                     status,
-                    oee,
-                    problem
+                    oee
                 ))
                 inserted_id = cur.fetchone()[0]
         return inserted_id
