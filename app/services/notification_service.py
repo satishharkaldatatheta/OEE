@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import psycopg2
 import os
-from dotenv import load_dotenv
 from typing import Optional
+from dotenv import load_dotenv
 
 load_dotenv()
 
-
+# ────────────────────────────────────────────────────────────────────────────────
 def get_db_connection():
     return psycopg2.connect(
         host=os.getenv("POSTGRES_HOST"),
@@ -16,157 +16,149 @@ def get_db_connection():
         password=os.getenv("POSTGRES_PASSWORD")
     )
 
-
+# ────────────────────────────────────────────────────────────────────────────────
 def calculate_and_insert_notifications():
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     now = datetime.now(timezone.utc)
 
-    cursor.execute("""
+    # latest end‑time for each reactor
+    cur.execute("""
         SELECT item_id, MAX(endtime) AS latest_endtime
         FROM oee.reactor_data
         GROUP BY item_id
     """)
-    reactor_items = cursor.fetchall()
+    rows = cur.fetchall()
 
-    inserted_count = 0
+    inserted = 0
 
-    for item_id, endtime in reactor_items:
+    for item_id, endtime in rows:
         if endtime is None:
             continue
-
-        # Convert to timezone-aware if it's not already
         if endtime.tzinfo is None:
             endtime = endtime.replace(tzinfo=timezone.utc)
 
-        delta = now - endtime
-        hours_inactive = int(delta.total_seconds() // 3600)
+        hours = int((now - endtime).total_seconds() // 3600)
 
-        intensity = None
-        if hours_inactive > 72:
-            intensity = "high"
-        elif hours_inactive > 48:
-            intensity = "medium"
-        elif hours_inactive > 24:
-            intensity = "low"
+        if   hours > 72:
+            intensity   = "high"
+            description = "Inactive for more than 72 hours"
+        elif hours > 48:
+            intensity   = "medium"
+            description = "Inactive for more than 48 hours"
+        elif hours > 24:
+            intensity   = "low"
+            description = "Inactive for more than 24 hours"
+        else:
+            continue  # still active
 
-        if not intensity:
-            continue
-
-        cursor.execute("""
+        # equipment / location
+        cur.execute("""
             SELECT equipment_id, loc_id
             FROM oee.items
             WHERE item_id = %s
         """, (item_id,))
-        item_info = cursor.fetchone()
-        if not item_info:
+        row = cur.fetchone()
+        if not row:
             continue
+        equipment_id, loc_id = row
 
-        equipment_id, loc_id = item_info
-
-        cursor.execute("""
-            SELECT id FROM oee.notifications
-            WHERE item_id = %s AND intensity = %s AND created_at::date = CURRENT_DATE
+        # avoid duplicate notification for today
+        cur.execute("""
+            SELECT 1 FROM oee.notifications
+            WHERE item_id = %s
+              AND intensity = %s
+              AND created_at::date = CURRENT_DATE
         """, (item_id, intensity))
-        existing = cursor.fetchone()
-        if existing:
+        if cur.fetchone():
             continue
 
-        cursor.execute("""
+        # ── insert notification ────────────────────────────────────────────────
+        cur.execute("""
             INSERT INTO oee.notifications (
                 item_id, equipment_id, loc_id,
                 intensity, inactive_since, inactive_hours,
-                created_at, read
+                created_at, read, description
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, FALSE, %s)
             RETURNING id
         """, (
             item_id, equipment_id, loc_id,
-            intensity, endtime, hours_inactive,
-            now, False
+            intensity, endtime, hours, now, description
         ))
-        notification_id = cursor.fetchone()[0]
-        inserted_count += 1
+        notif_id = cur.fetchone()[0]
+        inserted += 1
 
-        cursor.execute("SELECT user_id FROM oee.useritems WHERE item_id = %s", (item_id,))
-        user_rows = cursor.fetchall()
-
-        for (user_id,) in user_rows:
-            cursor.execute("""
+        # map to every authorised user
+        cur.execute("SELECT user_id FROM oee.useritems WHERE item_id = %s", (item_id,))
+        for (user_id,) in cur.fetchall():
+            cur.execute("""
                 INSERT INTO oee.user_notifications (user_id, notification_id, is_read)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (user_id, notification_id) DO NOTHING
-            """, (user_id, notification_id, False))
+                VALUES (%s, %s, FALSE)
+                ON CONFLICT DO NOTHING
+            """, (user_id, notif_id))
 
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return {"message": f"{inserted_count} new notifications inserted."}
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": f"{inserted} new notifications inserted."}
 
-
+# ────────────────────────────────────────────────────────────────────────────────
 def get_notifications_for_user(user_id: str, read: Optional[bool] = None):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    conn = get_db_connection()
+    cur  = conn.cursor()
 
-    query = """
-        SELECT n.id, n.item_id, n.equipment_id, n.loc_id,
-               n.intensity, n.inactive_since, n.inactive_hours,
+    sql = """
+        SELECT n.id, n.item_id, n.equipment_id, n.loc_id, n.intensity,
+               n.inactive_since, n.inactive_hours, n.description,
                n.created_at, un.is_read
-        FROM oee.user_notifications un
-        JOIN oee.notifications n ON un.notification_id = n.id
-        WHERE un.user_id = %s
+        FROM   oee.user_notifications un
+        JOIN   oee.notifications       n ON un.notification_id = n.id
+        WHERE  un.user_id = %s
     """
     params = [user_id]
-
     if read is not None:
-        query += " AND un.is_read = %s"
+        sql += " AND un.is_read = %s"
         params.append(read)
+    sql += " ORDER BY n.created_at DESC"
 
-    query += " ORDER BY n.created_at DESC"
+    cur.execute(sql, tuple(params))
+    out = [{
+        "notification_id": r[0],
+        "item_id":         r[1],
+        "equipment_id":    r[2],
+        "loc_id":          r[3],
+        "intensity":       r[4],
+        "inactive_since":  r[5],
+        "inactive_hours":  r[6],
+        "description":     r[7],
+        "created_at":      r[8],
+        "is_read":         r[9]
+    } for r in cur.fetchall()]
 
-    cursor.execute(query, tuple(params))
-    rows = cursor.fetchall()
+    cur.close(); conn.close()
+    return out
 
-    result = [
-        {
-            "notification_id": row[0],
-            "item_id": row[1],
-            "equipment_id": row[2],
-            "loc_id": row[3],
-            "intensity": row[4],
-            "inactive_since": row[5],
-            "inactive_hours": row[6],
-            "created_at": row[7],
-            "is_read": row[8]
-        }
-        for row in rows
-    ]
-
-    cursor.close()
-    connection.close()
-    return result
-
-
+# ────────────────────────────────────────────────────────────────────────────────
 def mark_notifications_as_read(user_id: str, notification_id: Optional[int] = None):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    conn = get_db_connection()
+    cur  = conn.cursor()
 
     if notification_id:
-        cursor.execute("""
+        cur.execute("""
             UPDATE oee.user_notifications
             SET is_read = TRUE
-            WHERE user_id = %s AND notification_id = %s AND is_read = FALSE
+            WHERE user_id = %s AND notification_id = %s
+              AND is_read = FALSE
         """, (user_id, notification_id))
     else:
-        cursor.execute("""
+        cur.execute("""
             UPDATE oee.user_notifications
             SET is_read = TRUE
             WHERE user_id = %s AND is_read = FALSE
         """, (user_id,))
 
-    updated = cursor.rowcount
-    connection.commit()
-    cursor.close()
-    connection.close()
-
+    updated = cur.rowcount
+    conn.commit()
+    cur.close(); conn.close()
     return {"message": f"{updated} notification(s) marked as read."}
