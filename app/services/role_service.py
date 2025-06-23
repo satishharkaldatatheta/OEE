@@ -18,13 +18,13 @@ def get_roles(role_id=None):
         query = """
             SELECT id, role, can_read, can_write, can_delete
             FROM oee.roletype
-            WHERE id = %s
+            WHERE id = %s and id!=1
         """
         cursor.execute(query, (role_id,))
     else:
         query = """
             SELECT id, role, can_read, can_write, can_delete
-            FROM oee.roletype
+            FROM oee.roletype where id!=1
         """
         cursor.execute(query)
 
