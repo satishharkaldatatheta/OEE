@@ -14,44 +14,46 @@ engine = create_engine(
 def get_item_data(item_id: str):
     query = """
         WITH MeanActiveTime AS (
-        SELECT 
-            productgroup, 
-            item_id, 
-            ROUND(AVG(activehours)) AS mean_active
-        FROM 
-            oee.reactor_oee
-        GROUP BY 
-            productgroup, item_id
-    ),
-    oee_calc AS (
-        SELECT 
-            rd.productgroup, 
-            rd.item_id, 
-            rd.starttime, 
-            rd.endtime, 
-            rd.activehours,
-            ROUND((
-                (rd.activehours / 
-                    CASE 
-                        WHEN rd.productgroup = 'A' THEN 30 
-                        WHEN rd.productgroup IN ('B', 'C') THEN 24 
-                        ELSE NULL 
-                    END
-                ) * 0.98 * 0.98
-            )::numeric, 2) AS oee,
-            i.loc_id
-        FROM 
-            oee.reactor_oee rd
-        JOIN 
-            oee.items i ON rd.item_id = i.item_id
-        JOIN 
-            MeanActiveTime m ON rd.productgroup = m.productgroup AND rd.item_id = m.item_id
-        WHERE 
-            rd.activehours BETWEEN m.mean_active * 0.18 AND m.mean_active * 0.85
-            AND rd.item_id = :item_id
-    )
-    SELECT *
-    FROM oee_calc
+            SELECT 
+                productgroup, 
+                item_id, 
+                ROUND(AVG(activehours)) AS mean_active
+            FROM 
+                oee.reactor_oee
+            GROUP BY 
+                productgroup, item_id
+        ),
+        oee_calc AS (
+            SELECT 
+                rd.productgroup, 
+                rd.item_id, 
+                rd.starttime, 
+                rd.endtime, 
+                rd.activehours,
+                LEAST(
+                    ROUND((
+                        (rd.activehours / 
+                            CASE 
+                                WHEN rd.productgroup = 'A' THEN 30 
+                                WHEN rd.productgroup IN ('B', 'C') THEN 24 
+                                ELSE NULL 
+                            END
+                        ) * 0.98 * 0.98
+                    )::numeric, 2), 
+                1) AS oee,
+                i.loc_id
+            FROM 
+                oee.reactor_oee rd
+            JOIN 
+                oee.items i ON rd.item_id = i.item_id
+            JOIN 
+                MeanActiveTime m ON rd.productgroup = m.productgroup AND rd.item_id = m.item_id
+            WHERE 
+                rd.activehours BETWEEN m.mean_active * 0.18 AND m.mean_active * 0.85
+                AND rd.item_id = :item_id
+        )
+        SELECT *
+        FROM oee_calc
     """
     with engine.connect() as connection:
         result = connection.execute(text(query), {"item_id": item_id})
