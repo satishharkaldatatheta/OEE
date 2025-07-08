@@ -17,15 +17,15 @@ class User(BaseModel):
     created_dt: str
 
 @router.post("/login", response_model=User)
-async def login(username: str, password: str):
-    user_data = get_user_from_db(username)
+async def login(email: str, password: str):
+    user_data = get_user_from_db(email)
 
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
 
     db_password = user_data[5]
-
     hashed_input = hashlib.sha256(password.encode()).hexdigest()
+
     if db_password != hashed_input:
         raise HTTPException(status_code=401, detail="Incorrect password")
 
