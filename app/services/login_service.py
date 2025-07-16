@@ -14,7 +14,7 @@ def get_user_from_db(email: str):
     query = """
     SELECT 
         id, firstname, lastname, email, username, password,
-        status, designation_id, role_id, created_dt
+        status, designation_id, role_id, created_dt, modified_dt
     FROM oee.loginuser 
     WHERE email = %s;
     """

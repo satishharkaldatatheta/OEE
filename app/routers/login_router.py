@@ -15,6 +15,7 @@ class User(BaseModel):
     designation_id: int
     role_id: int
     created_dt: str
+    modified_dt: str
 
 @router.post("/login", response_model=User)
 async def login(email: str, password: str):
@@ -38,6 +39,7 @@ async def login(email: str, password: str):
         status=user_data[6],
         designation_id=user_data[7],
         role_id=user_data[8],
-        created_dt=str(user_data[9])
+        created_dt=str(user_data[9]),
+        modified_dt=str(user_data[10])
     )
     return user

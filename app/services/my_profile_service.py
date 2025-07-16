@@ -22,7 +22,8 @@ def update_user_profile(user_id: int, firstname: str, lastname: str, password: s
             UPDATE oee.loginuser
             SET firstname = %s,
                 lastname = %s,
-                password = %s
+                password = %s,
+                modified_dt = NOW()
             WHERE id = %s
         """
         cursor.execute(update_query, (firstname, lastname, hashed_pw, user_id))
