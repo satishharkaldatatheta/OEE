@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.routers import item_data_router, login_router, enquiry, register,designation_router ,role_router,item_router,location_reg_router,equipment_reg_router,update_user_router, delete_user_router, update_item_router, delete_item_router,bookmark_router
 from pyngrok import ngrok
 import uvicorn
@@ -18,6 +20,9 @@ from app.routers.password_reset_router import router as password_reset_router
 
 
 app = FastAPI()
+
+BASE_DIR = Path(__file__).resolve().parent
+app.mount("/api/ProfileImage", StaticFiles(directory=BASE_DIR / "ProfileImage"), name="profile_images")
 
 app.add_middleware(
     CORSMiddleware,
