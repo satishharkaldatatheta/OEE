@@ -14,13 +14,13 @@ async def register(
     designation_id: int = Form(...),
     role_id: int = Form(...),
     location_ids: list[str] = Form(...), 
-    item_ids: list[str] = Form(...)
+    item_ids: list[str] = Form(...),
+    added_by: int = Form(...)
 ):
     try:
         if password != confirm_password:
             raise HTTPException(status_code=400, detail="Passwords do not match")
 
-        # Handle case where UI sends a single comma-separated string instead of list
         if len(location_ids) == 1 and "," in location_ids[0]:
             location_ids = location_ids[0].split(",")
         if len(item_ids) == 1 and "," in item_ids[0]:
@@ -28,8 +28,8 @@ async def register(
 
         register_user(
             firstname, lastname, email, username, password,
-            designation_id, role_id, location_ids, item_ids
+            designation_id, role_id, location_ids, item_ids, added_by
         )
-        return {"message": "User registered successfully. Status is set to Disabled."}
+        return {"message": "User registered successfully. Status is set to Disabled. An email has been sent."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
