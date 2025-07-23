@@ -13,32 +13,37 @@ def hash_password(password: str) -> str:
 def send_reset_email(to_email: str, added_by: str, token: str):
     sender = os.getenv("EMAIL_SENDER")
     password = os.getenv("EMAIL_PASSWORD")
-
     link = f"{RESET_LINK_BASE}/{token}"
+
     subject = "Welcome to Vortex - Set your password"
     body = f"""
-    Hello,
+Hello,
 
-    You have been added by {added_by} to the Vortex system.
+You have been added by {added_by} to the Vortex system.
 
-    Please click the link below to set your password and activate your account:
-    {link}
+Please click the link below to set your password and activate your account:
+{link}
 
-    This link is valid for 24 hours.
+This link is valid for 24 hours.
 
-    Regards,
-    Vortex Team
-    """
+Regards,  
+Vortex Team
+"""
 
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = to_email
 
-    with smtplib.SMTP("smtp.office365.com", 587) as server:
-        server.starttls()
-        server.login(sender, password)
-        server.send_message(msg)
+    try:
+        with smtplib.SMTP("smtp.office365.com", 587) as server:
+            server.starttls()
+            server.login(sender, password)
+            server.send_message(msg)
+        print("Email sent successfully.")
+    except Exception as e:
+        print("Error sending email:", e)
+
 
 def register_user(firstname, lastname, email, username, password,
                   designation_id, role_id, location_ids, item_ids, added_by):
