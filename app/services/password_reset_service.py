@@ -84,10 +84,14 @@ If you didn’t request this, you can safely ignore this email.
     msg["Subject"] = subject
     msg.set_content(body)
 
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.send_message(msg)
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+            server.send_message(msg)
+        print("Email sent successfully.")
+    except Exception as e:
+        print("Error sending email:", e)
 
 
 def verify_token_validity(token: str) -> bool:
