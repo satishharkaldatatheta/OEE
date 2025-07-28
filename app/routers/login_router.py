@@ -20,6 +20,14 @@ class User(BaseModel):
     phone_number: str | None = None
     postal_code: str | None = None
     profile_picture_url: str | None = None
+    country_id: int | None = None
+    country_name: str | None = None
+    timezone_id: int | None = None
+    timezone_name: str | None = None
+    utc_offset: str | None = None
+    language_id: int | None = None
+    language_name: str | None = None
+    iso_code: str | None = None
 
 @router.post("/login", response_model=User)
 async def login(email: str, password: str):
@@ -48,6 +56,14 @@ async def login(email: str, password: str):
         address=user_data[11],
         phone_number=user_data[12],
         postal_code=user_data[13],
-        profile_picture_url=user_data[14]
+        profile_picture_url=user_data[14],
+        country_id=user_data[15],
+        country_name=user_data[16],
+        timezone_id=user_data[17],
+        timezone_name=user_data[18],
+        utc_offset=user_data[19],
+        language_id=user_data[20],
+        language_name=user_data[21],
+        iso_code=user_data[22]
     )
     return user

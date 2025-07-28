@@ -8,7 +8,10 @@ def update_user_profile(
     address: str = None,
     phone_number: str = None,
     postal_code: str = None,
-    profile_picture_url: str = None
+    profile_picture_url: str = None,
+    country_id: int = None,
+    language_id: int = None,
+    timezone_id: int = None
 ):
     try:
         conn = psycopg2.connect(
@@ -27,7 +30,10 @@ def update_user_profile(
                 address = %s,
                 phone_number = %s,
                 postal_code = %s,
-                profile_picture_url = %s
+                profile_picture_url = %s,
+                country_id = %s,
+                language_id = %s,
+                timezone_id = %s
             WHERE id = %s
         """
         cursor.execute(update_query, (
@@ -37,6 +43,9 @@ def update_user_profile(
             phone_number,
             postal_code,
             profile_picture_url,
+            country_id,
+            language_id,
+            timezone_id,
             user_id
         ))
 

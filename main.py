@@ -13,7 +13,7 @@ from app.routers.notification_router import router as notification_router
 from app.routers.current_status_router import router as current_status_router
 from app.routers.sub_group_router import router as sub_group_router
 from app.routers.my_profile import router as my_profile_router
-from app.routers import remark_router, remark_data_router, remark_comment_router
+from app.routers import remark_router, remark_data_router, remark_comment_router, country_router ,timezone_router,language_router
 from app.routers.equipment_list_router import router as equipment_list_router
 from app.routers.password_reset_router import router as password_reset_router
 from app.routers import login_router, change_password_router
@@ -61,7 +61,9 @@ app.include_router(remark_comment_router.router)
 app.include_router(equipment_list_router)
 app.include_router(password_reset_router)
 app.include_router(change_password_router.router)
-
+app.include_router(country_router.router)
+app.include_router(timezone_router.router)
+app.include_router(language_router.router)
 
 
 if __name__ == "__main__":
