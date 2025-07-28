@@ -11,16 +11,11 @@ async def my_profile(
     user_id: int = Form(...),
     firstname: str = Form(...),
     lastname: str = Form(...),
-    password: str = Form(...),
-    confirm_password: str = Form(...),
     address: Optional[str] = Form(None),
     phone_number: Optional[str] = Form(None),
     postal_code: Optional[str] = Form(None),
     profile_picture: Optional[UploadFile] = File(None)
 ):
-    if password != confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
     profile_picture_url = None
 
     if profile_picture:
@@ -29,7 +24,7 @@ async def my_profile(
             raise HTTPException(status_code=400, detail="Only JPEG and PNG files are allowed")
 
         try:
-            # Correct BASE_DIR: go from app/routers → app → api (2 levels up)
+            # BASE_DIR: go from app/routers → app → api (2 levels up)
             BASE_DIR = Path(__file__).resolve().parents[2]
             UPLOAD_DIR = BASE_DIR / "ProfileImage"
             UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -53,7 +48,6 @@ async def my_profile(
             user_id=user_id,
             firstname=firstname,
             lastname=lastname,
-            password=password,
             address=address,
             phone_number=phone_number,
             postal_code=postal_code,

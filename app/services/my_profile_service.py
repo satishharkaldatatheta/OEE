@@ -1,15 +1,10 @@
 import psycopg2
 import os
-import hashlib
-
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
 
 def update_user_profile(
     user_id: int,
     firstname: str,
     lastname: str,
-    password: str,
     address: str = None,
     phone_number: str = None,
     postal_code: str = None,
@@ -25,24 +20,19 @@ def update_user_profile(
         )
         cursor = conn.cursor()
 
-        hashed_pw = hash_password(password)
-
         update_query = """
             UPDATE oee.loginuser
             SET firstname = %s,
                 lastname = %s,
-                password = %s,
                 address = %s,
                 phone_number = %s,
                 postal_code = %s,
-                profile_picture_url = %s,
-                modified_dt = NOW()
+                profile_picture_url = %s
             WHERE id = %s
         """
         cursor.execute(update_query, (
             firstname,
             lastname,
-            hashed_pw,
             address,
             phone_number,
             postal_code,
