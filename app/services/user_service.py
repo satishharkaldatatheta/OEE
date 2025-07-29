@@ -13,6 +13,7 @@ def get_users(user_id=None):
         password=os.getenv("POSTGRES_PASSWORD")
     )
     cursor = conn.cursor()
+    
 
     query = """
         SELECT 
