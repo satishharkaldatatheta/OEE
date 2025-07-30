@@ -21,7 +21,7 @@ async def change_password(request: ChangePasswordRequest):
     hashed_current = hashlib.sha256(request.current_password.encode()).hexdigest()
 
     if db_password != hashed_current:
-        raise HTTPException(status_code=401, detail="Incorrect current password")
+        return {"status_code": 0, "message": "Incorrect current password"}
 
     hashed_new = hashlib.sha256(request.new_password.encode()).hexdigest()
     update_success = update_user_password(request.user_id, hashed_new)
@@ -29,4 +29,4 @@ async def change_password(request: ChangePasswordRequest):
     if not update_success:
         raise HTTPException(status_code=500, detail="Failed to update password")
 
-    return {"message": "Password changed successfully"}
+    return {"status_code": 1, "message": "Password changed successfully"}
