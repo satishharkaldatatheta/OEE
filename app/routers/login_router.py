@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.services.login_service import get_user_from_db
 import hashlib
+from typing import Optional
 
 router = APIRouter()
 
@@ -16,18 +17,18 @@ class User(BaseModel):
     role_id: int
     created_dt: str
     modified_dt: str
-    address: str | None = None
-    phone_number: str | None = None
-    postal_code: str | None = None
-    profile_picture_url: str | None = None
-    country_id: int | None = None
-    country_name: str | None = None
-    timezone_id: int | None = None
-    timezone_name: str | None = None
-    utc_offset: str | None = None
-    language_id: int | None = None
-    language_name: str | None = None
-    iso_code: str | None = None
+    address: Optional[str] = None
+    phone_number: Optional[str] = None
+    postal_code: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+    country_id: Optional[int] = None
+    country_name: Optional[str] = None
+    timezone_id: Optional[int] = None
+    timezone_name: Optional[str] = None
+    utc_offset: Optional[str] = None
+    language_id: Optional[int] = None
+    language_name: Optional[str] = None
+    iso_code: Optional[str] = None
 
 @router.post("/login", response_model=User)
 async def login(email: str, password: str):
