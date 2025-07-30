@@ -13,7 +13,6 @@ def get_users(user_id=None):
         password=os.getenv("POSTGRES_PASSWORD")
     )
     cursor = conn.cursor()
-    
 
     query = """
         SELECT 
@@ -21,7 +20,8 @@ def get_users(user_id=None):
             d.designation, r.role, u.designation_id, u.role_id,
             u.country_id, c.country_name,
             u.language_id, l.language_name, l.iso_code,
-            u.timezone_id, t.timezone_name, t.utc_offset
+            u.timezone_id, t.timezone_name, t.utc_offset,
+            u.profile_picture_url
         FROM oee.loginuser u
         LEFT JOIN oee.designation d ON u.designation_id = d.id
         LEFT JOIN oee.roletype r ON u.role_id = r.id
@@ -46,18 +46,19 @@ def get_users(user_id=None):
             designation, role, designation_id, role_id,
             country_id, country_name,
             language_id, language_name, iso_code,
-            timezone_id, timezone_name, utc_offset
+            timezone_id, timezone_name, utc_offset,
+            profile_picture_url
         ) = user
 
         # Get user items
         cursor.execute("SELECT item_id FROM oee.useritems WHERE user_id = %s", (uid,))
         item_ids = [row[0] for row in cursor.fetchall()]
-        items = "|".join(item_ids)
+        items = "|".join(str(i) for i in item_ids)
 
         # Get user locations
         cursor.execute("SELECT loc_id FROM oee.userlocations WHERE user_id = %s", (uid,))
         loc_ids = [row[0] for row in cursor.fetchall()]
-        locations = "|".join(loc_ids)
+        locations = "|".join(str(l) for l in loc_ids)
 
         results.append({
             "user_id": uid,
@@ -78,7 +79,8 @@ def get_users(user_id=None):
             "iso_code": iso_code,
             "timezone_id": timezone_id,
             "timezone_name": timezone_name,
-            "utc_offset": utc_offset
+            "utc_offset": utc_offset,
+            "profile_picture_url": profile_picture_url
         })
 
     cursor.close()
