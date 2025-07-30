@@ -62,7 +62,7 @@ async def login(email: str, password: str):
         country_name=user_data[16],
         timezone_id=user_data[17],
         timezone_name=user_data[18],
-        utc_offset=user_data[19],
+        utc_offset=str(user_data[19]) if user_data[19] is not None else None,
         language_id=user_data[20],
         language_name=user_data[21],
         iso_code=user_data[22]
