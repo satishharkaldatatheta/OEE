@@ -3,8 +3,8 @@ import os
 
 def update_user_profile(
     user_id: int,
-    firstname: str,
-    lastname: str,
+    firstname: str = None,
+    lastname: str = None,
     address: str = None,
     phone_number: str = None,
     postal_code: str = None,
@@ -23,31 +23,49 @@ def update_user_profile(
         )
         cursor = conn.cursor()
 
-        update_query = """
+        # Dynamically build the update query
+        fields = []
+        values = []
+
+        if firstname is not None:
+            fields.append("firstname = %s")
+            values.append(firstname)
+        if lastname is not None:
+            fields.append("lastname = %s")
+            values.append(lastname)
+        if address is not None:
+            fields.append("address = %s")
+            values.append(address)
+        if phone_number is not None:
+            fields.append("phone_number = %s")
+            values.append(phone_number)
+        if postal_code is not None:
+            fields.append("postal_code = %s")
+            values.append(postal_code)
+        if profile_picture_url is not None:
+            fields.append("profile_picture_url = %s")
+            values.append(profile_picture_url)
+        if country_id is not None:
+            fields.append("country_id = %s")
+            values.append(country_id)
+        if language_id is not None:
+            fields.append("language_id = %s")
+            values.append(language_id)
+        if timezone_id is not None:
+            fields.append("timezone_id = %s")
+            values.append(timezone_id)
+
+        if not fields:
+            raise Exception("No fields to update")
+
+        update_query = f"""
             UPDATE oee.loginuser
-            SET firstname = %s,
-                lastname = %s,
-                address = %s,
-                phone_number = %s,
-                postal_code = %s,
-                profile_picture_url = %s,
-                country_id = %s,
-                language_id = %s,
-                timezone_id = %s
+            SET {', '.join(fields)}
             WHERE id = %s
         """
-        cursor.execute(update_query, (
-            firstname,
-            lastname,
-            address,
-            phone_number,
-            postal_code,
-            profile_picture_url,
-            country_id,
-            language_id,
-            timezone_id,
-            user_id
-        ))
+        values.append(user_id)
+
+        cursor.execute(update_query, tuple(values))
 
         if cursor.rowcount == 0:
             raise Exception("User not found")

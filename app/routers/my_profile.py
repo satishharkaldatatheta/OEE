@@ -17,13 +17,13 @@ async def my_profile(
     country_id: Optional[int] = Form(None),
     language_id: Optional[int] = Form(None),
     timezone_id: Optional[int] = Form(None),
-    profile_picture: Optional[UploadFile] = File(None)
+    profile_picture_url: Optional[UploadFile] = File(None)
 ):
-    profile_picture_url = None
+    profile_picture_path = None
 
-    if profile_picture:
+    if profile_picture_url:
         # Validate image type
-        if profile_picture.content_type not in ["image/jpeg", "image/png"]:
+        if profile_picture_url.content_type not in ["image/jpeg", "image/png"]:
             raise HTTPException(status_code=400, detail="Only JPEG and PNG files are allowed")
 
         try:
@@ -33,15 +33,15 @@ async def my_profile(
             UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
             # Save file
-            file_ext = Path(profile_picture.filename).suffix.lower()
+            file_ext = Path(profile_picture_url.filename).suffix.lower()
             file_name = f"user_{user_id}{file_ext}"
             file_path = UPLOAD_DIR / file_name
 
             with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(profile_picture.file, buffer)
+                shutil.copyfileobj(profile_picture_url.file, buffer)
 
-            print(f"✅ Saved profile picture to: {file_path}")
-            profile_picture_url = f"/api/ProfileImage/{file_name}"
+            print(f"Saved profile picture to: {file_path}")
+            profile_picture_path = f"/api/ProfileImage/{file_name}"
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save image: {e}")
@@ -54,7 +54,7 @@ async def my_profile(
             address=address,
             phone_number=phone_number,
             postal_code=postal_code,
-            profile_picture_url=profile_picture_url,
+            profile_picture_url=profile_picture_path,
             country_id=country_id,
             language_id=language_id,
             timezone_id=timezone_id
