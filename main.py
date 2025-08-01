@@ -16,7 +16,7 @@ from app.routers.my_profile import router as my_profile_router
 from app.routers import remark_router, remark_data_router, remark_comment_router, country_router ,timezone_router,language_router
 from app.routers.equipment_list_router import router as equipment_list_router
 from app.routers.password_reset_router import router as password_reset_router
-from app.routers import login_router, change_password_router
+from app.routers import login_router, change_password_router, jsontotable
 
 
 
@@ -64,6 +64,7 @@ app.include_router(change_password_router.router)
 app.include_router(country_router.router)
 app.include_router(timezone_router.router)
 app.include_router(language_router.router)
+app.include_router(jsontotable.router, prefix="/api")
 
 
 if __name__ == "__main__":

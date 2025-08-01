@@ -2,7 +2,9 @@ from fastapi import APIRouter, Form, HTTPException, UploadFile, File
 from typing import Optional
 import shutil
 from pathlib import Path
-from app.services.my_profile_service import update_user_profile
+from datetime import datetime
+import os
+from app.services.my_profile_service import update_user_profile, get_current_profile_picture_url
 
 router = APIRouter()
 
@@ -22,21 +24,28 @@ async def my_profile(
     profile_picture_path = None
 
     if profile_picture_url:
-        # Validate image type
         if profile_picture_url.content_type not in ["image/jpeg", "image/png"]:
             raise HTTPException(status_code=400, detail="Only JPEG and PNG files are allowed")
 
         try:
-            # Determine upload directory
             BASE_DIR = Path(__file__).resolve().parents[2]
             UPLOAD_DIR = BASE_DIR / "ProfileImage"
             UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-            # Save file
+            # Add timestamp to filename
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             file_ext = Path(profile_picture_url.filename).suffix.lower()
-            file_name = f"user_{user_id}{file_ext}"
+            file_name = f"user_{user_id}_{timestamp}{file_ext}"
             file_path = UPLOAD_DIR / file_name
 
+            # Delete old picture if it exists
+            old_picture_url = get_current_profile_picture_url(user_id)
+            if old_picture_url:
+                old_file_path = BASE_DIR / old_picture_url.strip("/")
+                if old_file_path.exists():
+                    os.remove(old_file_path)
+
+            # Save new picture
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(profile_picture_url.file, buffer)
 

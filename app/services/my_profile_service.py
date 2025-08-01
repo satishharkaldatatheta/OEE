@@ -23,7 +23,6 @@ def update_user_profile(
         )
         cursor = conn.cursor()
 
-        # Dynamically build the update query
         fields = []
         values = []
 
@@ -76,3 +75,24 @@ def update_user_profile(
 
     except Exception as e:
         raise Exception(f"Database error: {e}")
+
+
+def get_current_profile_picture_url(user_id: int) -> str:
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("POSTGRES_HOST"),
+            port=os.getenv("POSTGRES_PORT"),
+            database=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD")
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT profile_picture_url FROM oee.loginuser WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        return result[0] if result and result[0] else None
+
+    except Exception as e:
+        raise Exception(f"Failed to fetch profile picture URL: {e}")
