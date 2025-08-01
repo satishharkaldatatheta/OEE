@@ -1,4 +1,4 @@
-import hashlib, os, smtplib, uuid
+import os, smtplib, uuid
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -6,9 +6,6 @@ import psycopg2
 
 load_dotenv()
 RESET_LINK_BASE = "http://vortex.datatheta.com:3000/reset-password"
-
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
 
 def send_reset_email(to_email: str, added_by: str, token: str):
     sender = os.getenv("EMAIL_SENDER")
@@ -45,7 +42,7 @@ Vortex Team
         print("Error sending email:", e)
 
 
-def register_user(firstname, lastname, email, username, password,
+def register_user(firstname, lastname, email, username,
                   designation_id, role_id, location_ids, item_ids, added_by):
     conn = None
     cursor = None
@@ -59,16 +56,15 @@ def register_user(firstname, lastname, email, username, password,
         )
         cursor = conn.cursor()
 
-        hashed_pw = hash_password(password)
         status = "Disabled"
 
         cursor.execute("""
             INSERT INTO oee.loginuser 
-            (firstname, lastname, email, username, password, designation_id, role_id, status, added_by)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (firstname, lastname, email, username, designation_id, role_id, status, added_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            firstname, lastname, email, username, hashed_pw,
+            firstname, lastname, email, username,
             designation_id, role_id, status, added_by
         ))
         user_id = cursor.fetchone()[0]
