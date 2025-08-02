@@ -62,7 +62,8 @@ def get_users(user_id=None):
 
         results.append({
             "user_id": uid,
-            "name": f"{firstname} {lastname}",
+            "firstname": firstname,
+            "lastname": lastname,
             "email": email,
             "role": role,
             "role_id": role_id,
