@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import psycopg2
 
 load_dotenv()
-RESET_LINK_BASE = "http://vortex.datatheta.com:3000/reset-password"
+RESET_LINK_BASE = "http://vortex.datatheta.com:3000/reset-password?token="
 
 def send_reset_email(to_email: str, added_by: str, token: str):
     sender = os.getenv("EMAIL_SENDER")
