@@ -10,7 +10,7 @@ RESET_LINK_BASE = "http://vortex.datatheta.com:3000/reset-password?token="
 def send_reset_email(to_email: str, added_by: str, token: str):
     sender = os.getenv("EMAIL_SENDER")
     password = os.getenv("EMAIL_PASSWORD")
-    link = f"{RESET_LINK_BASE}/{token}"
+    link = f"{RESET_LINK_BASE}{token}"
 
     subject = "Welcome to Vortex - Set your password"
     body = f"""
