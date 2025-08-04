@@ -15,19 +15,17 @@ def delete_user(user_id: int):
         )
         cursor = conn.cursor()
 
-        # Delete from useritems
+        # Delete from dependent tables first (child → parent order)
+        cursor.execute("DELETE FROM oee.password_resets WHERE user_id = %s", (user_id,))
         cursor.execute("DELETE FROM oee.useritems WHERE user_id = %s", (user_id,))
-
-        # Delete from userlocations
         cursor.execute("DELETE FROM oee.userlocations WHERE user_id = %s", (user_id,))
-
-        # Delete from loginuser
         cursor.execute("DELETE FROM oee.loginuser WHERE id = %s", (user_id,))
 
         conn.commit()
         cursor.close()
         conn.close()
         return True
+
     except Exception as e:
         print(f"Error deleting user: {e}")
         return False

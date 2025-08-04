@@ -56,7 +56,7 @@ def register_user(firstname, lastname, email, username,
         )
         cursor = conn.cursor()
 
-        status = "Disabled"
+        status = "Enabled"
 
         cursor.execute("""
             INSERT INTO oee.loginuser 

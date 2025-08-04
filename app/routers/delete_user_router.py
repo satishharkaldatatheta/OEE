@@ -7,6 +7,6 @@ router = APIRouter()
 def delete_user(user_id: int):
     success = delete_user_service.delete_user(user_id)
     if success:
-        return {"message": f"User with id {user_id} deleted successfully."}
+        return {"message": f"User deleted successfully."}
     else:
         raise HTTPException(status_code=404, detail="User not found or could not be deleted")

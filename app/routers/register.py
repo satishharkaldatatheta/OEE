@@ -25,6 +25,6 @@ async def register(
             firstname, lastname, email, username,
             designation_id, role_id, location_ids, item_ids, added_by
         )
-        return {"message": "User registered successfully. Status is set to Disabled. An email has been sent."}
+        return {"message": "User registered successfully. An email has been sent."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
