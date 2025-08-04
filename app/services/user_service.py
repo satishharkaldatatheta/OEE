@@ -17,6 +17,7 @@ def get_users(user_id=None):
     query = """
         SELECT 
             u.id, u.firstname, u.lastname, u.email, u.status, u.created_dt,
+            u.address, u.phone_number, u.postal_code,
             d.designation, r.role, u.designation_id, u.role_id,
             u.country_id, c.country_name,
             u.language_id, l.language_name, l.iso_code,
@@ -43,6 +44,7 @@ def get_users(user_id=None):
     for user in users:
         (
             uid, firstname, lastname, email, status, created_dt,
+            address, phone_number, postal_code,
             designation, role, designation_id, role_id,
             country_id, country_name,
             language_id, language_name, iso_code,
@@ -73,6 +75,9 @@ def get_users(user_id=None):
             "items": items,
             "locations": locations,
             "status": status,
+            "address": address,
+            "phone_number": phone_number,
+            "postal_code": postal_code,
             "country_id": country_id,
             "country_name": country_name,
             "language_id": language_id,
